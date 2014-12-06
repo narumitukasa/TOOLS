@@ -4,12 +4,20 @@ class Game_Parts < Sprite_Base
   # Mix_In
   include RandTable
   include Coordinate
+  include Easing
   
   # 定数
   LIMIT_WIDTH = 640 * 4
   LIMIT_HEIGHT = 480 * 4
 
   # 公開インスタンス変数
+  attr_accessor :spin_speed
+  attr_accessor :revise_x
+  attr_accessor :revise_y
+  attr_accessor :tone_red
+  attr_accessor :tone_green
+  attr_accessor :tone_blue
+  attr_accessor :tone_gray
   attr_writer   :physics
   attr_writer   :path
   attr_writer   :with_emitter
@@ -21,7 +29,7 @@ class Game_Parts < Sprite_Base
     @edit = false
     @parts = parts_data
     @camera = nil
-    @target_frame = nil
+    @target = nil
     @next_frame   = false
     @with_emitter = false
     @finished     = true 
@@ -100,7 +108,10 @@ class Game_Parts < Sprite_Base
   # モーションを設定
   def set_motion
     return if frame_empty?
-    @target_frame = next_frame
+    # イージング用ハッシュ
+    easing = {}
+    # 補完終点フレーム
+    @target = next_frame
     # 画像を変更
     @parts_img = set_imgset
     # その他のパラメータ
@@ -118,44 +129,36 @@ class Game_Parts < Sprite_Base
     @direction_to_spin = false
     @spin = spin
     # 回転速度の初期設定
-    @original_spin_speed = @frame.spin_speed
-    @adjust_spin_speed   = @target_frame.spin_speed - @frame.spin_speed
-    @update_spin_speed   = @original_spin_speed != @target_spin_speed
+    @spin_speed = @frame.spin_speed
+    easing[:spin_speed] = @target.spin_speed if @frame.spin_speed != @target.spin_speed
     # 反転の初期設定
     @mirror = @random_mirror ? (not @frame.mirror) : @frame.mirror 
     # 不透明度の初期設定
-    @original_alpha = @frame.alpha
-    @adjust_alpha   = @target_frame.alpha - @frame.alpha
-    @update_alpha   = @adjust_alpha != 0
-    self.alpha      = @frame.alpha 
+    self.alpha = @frame.alpha
+    easing[:alpha] = @target.alpha if @frame.alpha != @target.alpha
     # 修正座標の初期設定
-    @original_revise_x = @frame.revise_x     
-    @original_revise_y = @frame.revise_y
-    @adjust_revise_x   = @target_frame.revise_x - @frame.revise_x   
-    @adjust_revise_y   = @target_frame.revise_y - @frame.revise_y
-    @update_coordinate = @adjust_revise_x != 0 || @adjust_revise_y != 0
-    @revise_x          = @original_revise_x      
-    @revise_y          = @original_revise_y
+    @revise_x = @frame.revise_x     
+    @revise_y = @frame.revise_y
+    easing[:revise_x] = @target.revise_x if @frame.revise_x != @target.revise_x
+    easing[:revise_y] = @target.revise_y if @frame.revise_y != @target.revise_y
     # 拡大率の初期設定
-    @original_scale_x = @frame.scale_x * 100
-    @original_scale_y = @frame.scale_y * 100
-    @adjust_scale_x   = (@target_frame.scale_x - @frame.scale_x) * 100
-    @adjust_scale_y   = (@target_frame.scale_y - @frame.scale_y) * 100
-    @update_zoom      = @adjust_scale_x != 0 || @adjust_scale_y != 0
-    self.scale_x      = @original_scale_x / 10000.0
-    self.scale_y      = @original_scale_y / 10000.0
+    self.scale_x = @frame.scale_x / 100.0
+    self.scale_y = @frame.scale_y / 100.0
+    easing[:scale_x] = @target.scale_x / 100.0 if @frame.scale_x != @target.scale_x
+    easing[:scale_y] = @target.scale_y / 100.0 if @frame.scale_y != @target.scale_y
     # 色調の初期設定
-    @original_tone_red   = @frame.tone_red
-    @original_tone_green = @frame.tone_green
-    @original_tone_blue  = @frame.tone_blue
-    @original_tone_gray  = @frame.tone_gray
-    @adjust_tone_red     = @target_frame.tone_red   - @frame.tone_red
-    @adjust_tone_green   = @target_frame.tone_green - @frame.tone_green
-    @adjust_tone_blue    = @target_frame.tone_blue  - @frame.tone_blue
-    @adjust_tone_gray    = @target_frame.tone_gray  - @frame.tone_gray
-    @update_tone         = @adjust_tone_red   != 0 || @adjust_tone_green != 0 ||
-                           @adjust_tone_blue  != 0 || @adjust_tone_gray  != 0
-    self.tone(@original_tone_red, @original_tone_green, @original_tone_blue, @original_tone_gray)
+    @tone_red   = @frame.tone_red
+    @tone_green = @frame.tone_green
+    @tone_blue  = @frame.tone_blue
+    @tone_gray  = @frame.tone_gray
+    self.tone(@tone_red, @tone_green, @tone_blue, @tone_gray)
+    easing[:tone_red]   = @target.tone_red   if @frame.tone_red   != @target.tone_red
+    easing[:tone_green] = @target.tone_green if @frame.tone_green != @target.tone_green
+    easing[:tone_blue]  = @target.tone_blue  if @frame.tone_blue  != @target.tone_blue
+    easing[:tone_gray]  = @target.tone_gray  if @frame.tone_gray  != @target.tone_gray
+    @update_tone = (easing.key?(:red) || easing.key?(:blue) || easing.key?(:green) || easing.key?(:gray))
+    # イージングのセット
+    animate(easing, @span, :liner)
     # システム値の設定
     @count        = 0                               # 経過時間
     @pattern      = 0 if @frame.reset_anime         # アニメーションパターン             
@@ -242,6 +245,7 @@ class Game_Parts < Sprite_Base
 
   # 終了
   def finish
+    stop_animate
     self.visible = false
     @bitmap = nil
     @finished = true
@@ -255,8 +259,7 @@ class Game_Parts < Sprite_Base
   ### 参照関連(画像セットデータ)
   # 画像セット
   def set_imgset
-    imgset = @frame.img_list
-    img_id = imgset[erand(imgset.size)]
+    img_id = @frame.img_list[erand(@frame.img_list.size)]
     img_id ? $data_parts_image[img_id] : nil
   end
  
@@ -359,17 +362,14 @@ class Game_Parts < Sprite_Base
     if @update_count == 0
       update_parts unless @finished             # パーツの更新 
       unless @finished
+        super
         update_last_pos                         # 1フレーム前の位置を更新
         update_vector                           # ベクトルの更新
         update_path                             # パスの更新
-        update_coordinate if @update_coordinate # 修正座標の更新
-        update_position   if @update_position   # 位置情報の更新
-        update_alpha    if @update_alpha    # 透明度の更新
-        update_spin_speed if @update_spin_speed # 回転速度の更新
         update_angle                            # 角度の更新
-        update_zoom                             # 画面拡大率の更新
+        update_position   if @update_position   # 位置情報の更新
         update_tone       if @update_tone       # 色調の更新
-        update_animation  if @parts_img     # アニメーションの更新
+        update_animation  if @parts_img         # アニメーションの更新
         #valid?
       end
     end
@@ -393,7 +393,7 @@ class Game_Parts < Sprite_Base
         @count = 0
       # 次のモーションに引き継ぐ
       elsif @next_frame
-        set_next_frame(@target_frame)
+        set_next_frame(@target)
       # 終了
       else
         finish 
@@ -457,22 +457,10 @@ class Game_Parts < Sprite_Base
     self.alpha = @original_alpha + @adjust_alpha * @count / @span
   end
 
-  # 修正座標の更新
-  def update_coordinate
-    @revise_x = @original_revise_x + @adjust_revise_x * @count / @span
-    @revise_y = @original_revise_y + @adjust_revise_y * @count / @span
-  end 
-
   # スプライト座標の更新
   def update_sprite_pos
     self.x = @real_x / 8000 + @revise_x
     self.y = @real_y / 8000 + @revise_y
-  end
-  
-  # 拡大率の更新
-  def update_zoom
-    self.scale_x = (@original_scale_x + @adjust_scale_x * @count / @span) / 10000.0
-    self.scale_y = (@original_scale_y + @adjust_scale_y * @count / @span) / 10000.0
   end
   
   # 回転速度の更新
@@ -506,10 +494,7 @@ class Game_Parts < Sprite_Base
 
   # 色調の更新
   def update_tone
-    self.tone(@original_tone_red   + @adjust_tone_red   * @count / @span,
-                  @original_tone_green + @adjust_tone_green * @count / @span,
-                  @original_tone_blue  + @adjust_tone_blue  * @count / @span,
-                  @original_tone_gray  + @adjust_tone_gray  * @count / @span)
+    self.tone(@tone_red, @tone_green, @tone_blue, @tone_gray)
   end
 
   # フィジックス：パスの更新

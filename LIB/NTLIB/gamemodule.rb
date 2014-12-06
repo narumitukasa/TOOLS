@@ -1,5 +1,7 @@
 # coding: utf-8
 require 'dxruby'
+require_relative 'easing'
+require_relative 'posteffect'
 
 ### ■スプライトのベースクラス■ ###
 class Sprite_Base < Sprite
@@ -29,19 +31,6 @@ class Sprite_Base < Sprite
     self.image.resize(w, h)
     self.image.ox = x
     self.image.oy = y
-  end
-  
-  # 反転状態の設定
-  def mirror=(v)
-    @mirror = v
-    self.scale = (@scale_x)
-  end
-  
-  # 拡大率の設定
-  def scale_x=(v)
-    @scale_x = v
-    # 反転フラグが立っている場合拡大率を負の値にする
-    super(@scale_x * (@mirror ? -1 : 1))
   end
     
   # 色調の設定
