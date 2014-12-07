@@ -452,11 +452,6 @@ class Game_Parts < Sprite_Base
     @real_y = @real_y + @vector_y / 10
   end
 
-  # 透明度の更新
-  def update_alpha
-    self.alpha = @original_alpha + @adjust_alpha * @count / @span
-  end
-
   # スプライト座標の更新
   def update_sprite_pos
     self.x = @real_x / 8000 + @revise_x
@@ -682,6 +677,7 @@ class Game_Emitter < Sprite_Base
       @count = (@count + 1) % 10000        
       # 更新
       update_emit_range       # 射出範囲の更新
+      update_emit_angle
       update_path             # パスの更新
       emit_parts if live?  # パーティクルの射出
     end
@@ -695,6 +691,11 @@ class Game_Emitter < Sprite_Base
   # 射出範囲の更新
   def update_emit_range
     @emit_range = frame_value(@emitter.emit_range, @emitter.target_emit_range)
+  end
+  
+  # 射出角度の更新
+  def update_emit_angle
+    @emit_angle = frame_value(@emitter.emit_angle, @emitter.target_emit_angle)
   end
   
   # パーティクルの放出
@@ -719,11 +720,26 @@ class Game_Emitter < Sprite_Base
     # フィジックスを設定
     set_parts_physics(new_parts)
     # 位置情報を設定
-    set_parts_pos(new_parts)
-    # ベクトル情報を設定
-    set_parts_vector(new_parts)
-    # 角度情報を設定
-    set_parts_angle(new_parts)
+    emit_pos_x = (@emitter.radius_x - 1 - (erand(@emitter.radius_x) + erand(@emitter.radius_x)))
+    emit_pos_y = (@emitter.radius_y - 1 - (erand(@emitter.radius_y) + erand(@emitter.radius_y)))
+    unless @draw_target
+      emit_pos_x += self.x
+      emit_pos_y += self.y
+    end
+    new_parts.set_pos(emit_pos_x, emit_pos_y)
+    # 角度の決定
+    emit_angle = (@emit_angle + @angle + @emit_range / 2 - erand(@emit_range + 1)) % 360
+    if new_parts.random_angle?
+      new_parts.set_angle(erand(360))
+    elsif new_parts.angle_of_emission?
+      new_parts.set_angle(emit_angle)
+    end
+    # ベクトルの決定 
+    emit_speed = velocity
+    vector_x = -(round_sin(emit_angle) * emit_speed).round
+    vector_y = -(round_cos(emit_angle) * emit_speed).round
+    # ベクトル情報をセット
+    new_parts.set_vector(vector_x, vector_y, acceleration)
   end
   
   # 新しいパーティクルデータをセット
@@ -755,40 +771,6 @@ class Game_Emitter < Sprite_Base
     # フィジックスを設定
     parts_data.with_emitter = true
     parts_data.physics = @physics
-  end
-  
-  # 放出する位置を設定
-  def set_parts_pos(parts_data)  
-    emit_pos_x = (@emitter.radius_x - 1 - (erand(@emitter.radius_x) + erand(@emitter.radius_x)))
-    emit_pos_y = (@emitter.radius_y - 1 - (erand(@emitter.radius_y) + erand(@emitter.radius_y)))
-    # 位置情報を設定
-    unless @draw_target
-      emit_pos_x += self.x
-      emit_pos_y += self.y
-    end
-    parts_data.set_pos(emit_pos_x, emit_pos_y)
-  end
-  
-  # 放出ベクトルを設定
-  def set_parts_vector(parts_data)
-    # 角度の決定
-    @emit_angle = (@emitter.emit_angle + @angle + @emit_range / 2 - erand(@emit_range + 1)) % 360
-    # ベクトルの決定 
-    emit_speed = velocity
-    vector_x = -(round_sin(@emit_angle) * emit_speed).round
-    vector_y = -(round_cos(@emit_angle) * emit_speed).round
-    # ベクトル情報をセット
-    parts_data.set_vector(vector_x, vector_y, acceleration)
-  end
-  
-  # 角度を設定
-  def set_parts_angle(parts_data)
-    # 角度の決定
-    if parts_data.random_angle?
-      parts_data.set_angle(erand(360))
-    elsif parts_data.angle_of_emission?
-      parts_data.set_angle(@emit_angle)
-    end
   end
   
   # パーティクルセットの更新 
