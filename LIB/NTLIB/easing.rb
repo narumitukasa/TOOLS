@@ -28,12 +28,6 @@ module Easing
    
   # 更新
   def update
-    proccess_easing
-    super
-  end
-   
-  # イージング処理
-  def proccess_easing
     @easing_param.delete_if do |key, param|
       param.count += 1
       x = param.count.fdiv(param.duration)
@@ -50,8 +44,9 @@ module Easing
         false
       end
     end
+    super
   end
-  
+   
   EasingProcHash = {
   :liner => ->x{x},
   :in_quad => ->x{x**2},

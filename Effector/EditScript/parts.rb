@@ -53,7 +53,16 @@ module WS
           
           end
           add obj.c_panel_frame, false, true
-          add obj.c_preview, true, true
+          layout(:vbox) do
+            self.space = 8
+            layout(:hbox) do
+              add obj.c_btn_preview, false, false
+              self.height = 22
+              self.resizable_height = false
+              layout
+            end
+            add obj.c_preview, true, true
+          end
         end
       end 
 
@@ -139,10 +148,6 @@ module WS
             layout(:hbox) do
               add label_delay, false, false
               add obj.c_delay, true,  false
-              self.resizable_height = false
-              self.height = 22
-            end
-            layout do
               self.resizable_height = false
               self.height = 22
             end
@@ -251,39 +256,39 @@ module WS
           c_weight_variance.add_handler(:change){ edit_data.weight_variance = c_weight_variance.value }
 =end      
                 
-          add_control(WS::WSLabel.new(0, 0, 128, 22, "透明度"))
+          label_alpha = add_control(WS::WSLabel.new(0, 0, 128, 22, "透明度"))
           add_control(WS::WSNumberInputExt.new(0, 0, 128, 22), :c_alpha)
           c_alpha.add_handler(:change){ edit_data.alpha = c_alpha.value; signal(:change) }
           c_alpha.limit(0, 255)
                 
-          add_control(WS::WSLabel.new(0, 0, 128, 22, "補正座標X"))
+          label_revise_x = add_control(WS::WSLabel.new(0, 0, 128, 22, "補正座標X"))
           add_control(WS::WSNumberInputExt.new(0, 0, 128, 22), :c_revise_x)
           c_revise_x.add_handler(:change){ edit_data.revise_x = c_revise_x.value; signal(:change) }
       
-          add_control(WS::WSLabel.new(0, 0, 128, 22, "補正座標Y"))
+          label_revise_y = add_control(WS::WSLabel.new(0, 0, 128, 22, "補正座標Y"))
           add_control(WS::WSNumberInputExt.new(0, 0, 128, 22), :c_revise_y)
           c_revise_y.add_handler(:change){ edit_data.revise_y = c_revise_y.value; signal(:change) }
             
-          add_control(WS::WSLabel.new(0, 0, 128, 22, "拡大率X"))
+          label_scale_x = add_control(WS::WSLabel.new(0, 0, 128, 22, "拡大率X"))
           add_control(WS::WSNumberInputExt.new(0, 0, 128, 22), :c_scale_x)
           c_scale_x.add_handler(:change){ edit_data.scale_x = c_scale_x.value; signal(:change) }
           c_scale_x.limit(-800, 800)
             
-          add_control(WS::WSLabel.new(0, 0, 128, 22, "拡大率Y"))
+          label_scale_y = add_control(WS::WSLabel.new(0, 0, 128, 22, "拡大率Y"))
           add_control(WS::WSNumberInputExt.new(0, 0, 128, 22), :c_scale_y)
           c_scale_y.add_handler(:change){ edit_data.scale_y = c_scale_y.value; signal(:change) }
           c_scale_y.limit(-800, 800)  
             
-          add_control(WS::WSLabel.new(0, 0, 128, 22, "回転"))
+          label_spin = add_control(WS::WSLabel.new(0, 0, 128, 22, "回転"))
           add_control(WS::WSPullDownList.new(0, 0, 128, 22, 
             ["回転なし","時計回り","半時計回り","ランダム","移動方向","射出方向"]), :c_spin)
           c_spin.add_handler(:change){ edit_data.spin = c_spin.index; signal(:change) }
       
-          add_control(WS::WSLabel.new(0, 0, 128, 22, "回転速度"))
+          label_spin_speed = add_control(WS::WSLabel.new(0, 0, 128, 22, "回転速度"))
           add_control(WS::WSNumberInputExt.new(0, 0, 128, 22), :c_spin_speed)
           c_spin_speed.add_handler(:change){ edit_data.spin_speed = c_spin_speed.value; signal(:change) }
       
-          add_control(WS::WSLabel.new(0, 0, 128, 22, "回転速度分散度"))
+          label_spin_variance = add_control(WS::WSLabel.new(0, 0, 128, 22, "回転速度分散度"))
           add_control(WS::WSNumberInputExt.new(0, 0, 128, 22), :c_spin_variance)
           c_spin_variance.add_handler(:change){ edit_data.spin_variance = c_spin_variance.value; signal(:change) }
           c_spin_variance.limit(0, 100)
@@ -295,27 +300,27 @@ module WS
           c_mirror.add_handler(:change){ edit_data.mirror = c_mirror.value; signal(:change) }
           
                 
-          add_control(WS::WSLabel.new(0, 0, 128, 22, "色調R値"))
+          label_tone_red = add_control(WS::WSLabel.new(0, 0, 128, 22, "色調R値"))
           add_control(WS::WSNumberInputExt.new(0, 0, 128, 22), :c_tone_red)
           c_tone_red.limit(-255, 255)
           c_tone_red.add_handler(:change){ edit_data.tone_red = c_tone_red.value; signal(:change) }
       
-          add_control(WS::WSLabel.new(0, 0, 128, 22, "色調G値"))
+          label_tone_green = add_control(WS::WSLabel.new(0, 0, 128, 22, "色調G値"))
           add_control(WS::WSNumberInputExt.new(0, 0, 128, 22), :c_tone_green)
           c_tone_green.limit(-255, 255)
           c_tone_green.add_handler(:change){ edit_data.tone_green = c_tone_green.value; signal(:change) }
       
-          add_control(WS::WSLabel.new(0, 0, 128, 22, "色調B値"))
+          label_tone_blue = add_control(WS::WSLabel.new(0, 0, 128, 22, "色調B値"))
           add_control(WS::WSNumberInputExt.new(0, 0, 128, 22), :c_tone_blue)    
           c_tone_blue.limit(-255, 255)
           c_tone_blue.add_handler(:change){ edit_data.tone_blue = c_tone_blue.value; signal(:change) }
           
-          add_control(WS::WSLabel.new(0, 0, 128, 22, "色調A値"))
+          label_tone_gray = add_control(WS::WSLabel.new(0, 0, 128, 22, "色調A値"))
           add_control(WS::WSNumberInputExt.new(0, 0, 128, 22), :c_tone_gray)    
           c_tone_gray.limit(-255, 255)
           c_tone_gray.add_handler(:change){ edit_data.tone_gray = c_tone_gray.value; signal(:change) }
         
-          add_control(WS::WSLabel.new(0, 0, 128, 22, "次のキーフレーム"))
+         label_frame_list = add_control(WS::WSLabel.new(0, 0, 128, 22, "次のキーフレーム"))
           add_control(WSItemSelector.new(0, 0, 128, 22, @frame_list, "次のキーフレームを選択", true), :c_frame_list)
           c_frame_list.add_handler(:change){ edit_data.frame_list = c_frame_list.value; signal(:change) }
       
@@ -324,10 +329,6 @@ module WS
             self.space = 2
             add label_name, true, false
             add obj.c_name, true, false
-            layout do
-              self.height = 22
-              self.resizable_height = false
-            end
             add label_img_list, true, false
             add obj.c_img_list, true, false
             add obj.c_reset_anime, true, false
@@ -336,8 +337,12 @@ module WS
               self.height = 22
               self.resizable_height = false
             end
-            add label_blend, true, false
-            add obj.c_blend, true, false
+            layout(:hbox) do
+              add label_blend, false, false
+              add obj.c_blend, true, false 
+              self.height = 22
+              self.resizable_height = false
+            end
             layout(:hbox) do
                self.height = 22
               self.resizable_height = false
@@ -360,60 +365,103 @@ module WS
               self.height = 22
               self.resizable_height = false
             end
+            add obj.c_end_when_stop, true, false
             layout(:hbox) do
-              add label_span, false, false
-              add obj.c_span, true, false 
+               self.height = 22
+              self.resizable_height = false
+            end
+            layout(:hbox) do
+              add label_alpha, false, false
+              add obj.c_alpha, true, false 
               self.height = 22
               self.resizable_height = false
             end
             layout(:hbox) do
-              add label_span, false, false
-              add obj.c_span, true, false 
+               self.height = 22
+              self.resizable_height = false
+            end
+            layout(:hbox) do
+              add label_revise_x, false, false
+              add obj.c_revise_x, true, false 
               self.height = 22
               self.resizable_height = false
             end
             layout(:hbox) do
-              add label_span, false, false
-              add obj.c_span, true, false 
+              add label_revise_y, false, false
+              add obj.c_revise_y, true, false 
               self.height = 22
               self.resizable_height = false
             end
             layout(:hbox) do
-              add label_span, false, false
-              add obj.c_span, true, false 
+              add label_scale_x, false, false
+              add obj.c_scale_x, true, false 
               self.height = 22
               self.resizable_height = false
             end
             layout(:hbox) do
-              add label_span, false, false
-              add obj.c_span, true, false 
+              add label_scale_y, false, false
+              add obj.c_scale_y, true, false 
               self.height = 22
               self.resizable_height = false
             end
             layout(:hbox) do
-              add label_span, false, false
-              add obj.c_span, true, false 
+               self.height = 22
+              self.resizable_height = false
+            end
+            layout(:hbox) do
+              add label_spin, false, false
+              add obj.c_spin, true, false 
               self.height = 22
               self.resizable_height = false
             end
             layout(:hbox) do
-              add label_span, false, false
-              add obj.c_span, true, false 
+              add label_spin_speed, false, false
+              add obj.c_spin_speed, true, false 
               self.height = 22
               self.resizable_height = false
             end
             layout(:hbox) do
-              add label_span, false, false
-              add obj.c_span, true, false 
+              add label_spin_variance, false, false
+              add obj.c_spin_variance, true, false 
+              self.height = 22
+              self.resizable_height = false
+            end
+            add obj.c_spin_from_move, true, false
+            add obj.c_mirror, true, false
+            layout(:hbox) do
+               self.height = 22
+              self.resizable_height = false
+            end
+            layout(:hbox) do
+              add label_tone_red, false, false
+              add obj.c_tone_red, true, false 
               self.height = 22
               self.resizable_height = false
             end
             layout(:hbox) do
-              add label_span, false, false
-              add obj.c_span, true, false 
+              add label_tone_green, false, false
+              add obj.c_tone_green, true, false 
               self.height = 22
               self.resizable_height = false
             end
+            layout(:hbox) do
+              add label_tone_blue, false, false
+              add obj.c_tone_blue, true, false 
+              self.height = 22
+              self.resizable_height = false
+            end
+            layout(:hbox) do
+              add label_tone_gray, false, false
+              add obj.c_tone_gray, true, false 
+              self.height = 22
+              self.resizable_height = false
+            end
+            layout do
+              self.height = 22
+              self.resizable_height = false
+            end
+            add label_frame_list, true, false
+            add obj.c_frame_list, true, false 
             layout
           end
             

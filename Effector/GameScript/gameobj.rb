@@ -156,7 +156,7 @@ class Game_Parts < Sprite_Base
     easing[:tone_green] = @target.tone_green if @frame.tone_green != @target.tone_green
     easing[:tone_blue]  = @target.tone_blue  if @frame.tone_blue  != @target.tone_blue
     easing[:tone_gray]  = @target.tone_gray  if @frame.tone_gray  != @target.tone_gray
-    @update_tone = (easing.key?(:red) || easing.key?(:blue) || easing.key?(:green) || easing.key?(:gray))
+    @update_tone = (easing.key?(:tone_red) || easing.key?(:tone_blue) || easing.key?(:tone_green) || easing.key?(:tone_gray))
     # イージングのセット
     animate(easing, @span, :liner)
     # システム値の設定
