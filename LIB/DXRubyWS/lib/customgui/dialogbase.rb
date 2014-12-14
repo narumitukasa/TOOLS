@@ -10,7 +10,7 @@ module WS
     attr_accessor :border_width # ウィンドウボーダーの幅
     attr_reader :window_focus # ウィンドウ上のフォーカスを持つコントロール
     
-    def initialize(tx, ty, sx, sy, caption = "WindowTitle")
+    def initialize(tx, ty, sx, sy, caption = "WindowTitle", style = {})
       super(tx, ty, sx, sy)
       
       @border_width = default_border_width
