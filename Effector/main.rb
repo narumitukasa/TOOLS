@@ -51,7 +51,7 @@ WS.desktop.add_control(window)
 @load_count = 0
 
 
-
+Window.load_icon("icon2.ico")
 Window.loop do 
   
   WS.update

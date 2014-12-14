@@ -194,7 +194,7 @@ module WS
             
           label_target_emit_angle = add_control(WS::WSLabel.new(0, 0, 128, 22, "目標射出方向"))
           add_control(WS::WSNumberInputExt.new(0, 0, 128, 22), :c_target_emit_angle)
-          c_target_emit_angle.add_handler(:change){ edit_data.emit_angle = c_target_emit_angle.value; signal(:change) }
+          c_target_emit_angle.add_handler(:change){ edit_data.target_emit_angle = c_target_emit_angle.value; signal(:change) }
           c_target_emit_angle.limit(0, 36000)  
                 
           label_emit_range = add_control(WS::WSLabel.new(0, 0, 128, 22, "射出範囲"))

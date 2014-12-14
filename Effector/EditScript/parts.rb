@@ -201,6 +201,11 @@ module WS
           add_control(WSItemSelector.new(0, 0, 128, 22, $data_parts_image, "パーツ画像を選択", true), :c_img_list)
           c_img_list.add_handler(:change){ edit_data.img_list = c_img_list.value; signal(:change) }
       
+          label_anime_speed = add_control(WS::WSLabel.new(0, 0, 128, 22, "画像のアニメ間隔"))
+          add_control(WS::WSNumberInputExt.new(0, 0, 128, 22), :c_anime_speed)
+          c_anime_speed.add_handler(:change){|obj, v| edit_data.anime_speed = v; signal(:change) }
+          c_anime_speed.limit(1, 255)
+                
           add_control(WS::WSCheckBox.new(0, 0, 128,  "アニメをリセット"), :c_reset_anime)
           c_reset_anime.add_handler(:change){ edit_data.reset_anime = c_reset_anime.checked; signal(:change) }
       
@@ -331,9 +336,9 @@ module WS
             add obj.c_name, true, false
             add label_img_list, true, false
             add obj.c_img_list, true, false
-            add obj.c_reset_anime, true, false
-            add obj.c_change_type, true, false
-            layout do
+            layout(:hbox) do
+              add label_anime_speed, false, false
+              add obj.c_anime_speed, true, false 
               self.height = 22
               self.resizable_height = false
             end
@@ -343,6 +348,8 @@ module WS
               self.height = 22
               self.resizable_height = false
             end
+            add obj.c_reset_anime, true, false
+            add obj.c_change_type, true, false
             layout(:hbox) do
                self.height = 22
               self.resizable_height = false
@@ -483,6 +490,7 @@ module WS
           return unless @edit_data
           c_name.value = edit_data.name
           c_img_list.value = edit_data.img_list
+          c_anime_speed.value = edit_data.anime_speed
           c_reset_anime.value = edit_data.reset_anime
           c_change_type.value = edit_data.change_type
           c_blend.index = edit_data.blend == :add ? 1 : edit_data.blend == :add2 ? 2 : edit_data.blend == :sub ? 3 : 0
@@ -490,12 +498,7 @@ module WS
           c_span_variance.value = edit_data.span_variance
           c_repeat.value = edit_data.repeat
           c_end_when_stop.value = edit_data.end_when_stop
-=begin
-          c_friction.value = edit_data.friction
-          c_friction_variance.value = edit_data.friction_variance
-          c_weight.value.value = edit_data.weight
-          c_weight_variance.value = edit_data.weight_variance
-=end
+
           c_alpha.value = edit_data.alpha
           c_revise_x.value = edit_data.revise_x
           c_revise_y.value = edit_data.revise_y

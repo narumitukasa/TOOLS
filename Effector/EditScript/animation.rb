@@ -46,7 +46,7 @@ module WS
         
         
         # アニメーションプレビュー領域の作成
-        #add_control(WS::WSPreviewArea.new(508, 42, @width - 516 , @height - 73) ,:c_preview)
+        add_control(WS::WSPreviewArea.new(0, 0, 128, 128) ,:c_preview)
         #add_control(WS::WSButton.new(508, 16, 128, 20, "プレビュー再生"), :c_btn_preview)
         #c_btn_preview.add_handler(:click){ start_preview }
         # コメント領域の作成
@@ -57,7 +57,8 @@ module WS
         #c_preview.set_sprite(@animation)
         # オートレイアウト
         layout(:hbox) do
-          set_margin(8,8,8,8)
+          self.set_margin(8,8,8,8)
+          self.space = 8
           add obj.c_dock, false, true
           layout do
             self.resizable_width = false
@@ -75,8 +76,7 @@ module WS
             end
             add obj.c_panel_animation_layer, true, true
           end
-          layout
-
+          add obj.c_preview, true, true
         end
         # 初期項目の選択
         select_list(c_dock.client.c_list, 0)

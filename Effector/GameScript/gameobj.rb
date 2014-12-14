@@ -510,7 +510,7 @@ end
 
 
 
-### ■パーティクルを放出するエミッターのクラス■ ###
+### ■パーツを放出するエミッターのクラス■ ###
 class Game_Emitter < Sprite_Base
   
 
@@ -604,7 +604,7 @@ class Game_Emitter < Sprite_Base
     self.y += y
   end
 
-  # パーティクルの座標設定 
+  # パーツの座標設定 
   def adjust_z(value)
     self.z += value
   end
@@ -623,7 +623,7 @@ class Game_Emitter < Sprite_Base
   # エミッターの終了
   def finish
     @finish = true
-    # 登録パーティクルを全て終了
+    # 登録パーツを全て終了
     for parts in @parts_list
       next if parts.vanished?
       parts.finish
@@ -664,7 +664,7 @@ class Game_Emitter < Sprite_Base
   # フレーム更新 
   def update
     update_emitter    # エミッターの更新
-    update_parts_list  # パーティクルの更新
+    update_parts_list  # パーツの更新
   end
   
   # エミッターの更新 
@@ -679,7 +679,7 @@ class Game_Emitter < Sprite_Base
       update_emit_range       # 射出範囲の更新
       update_emit_angle
       update_path             # パスの更新
-      emit_parts if live?  # パーティクルの射出
+      emit_parts if live?  # パーツの射出
     end
   end
   
@@ -695,20 +695,21 @@ class Game_Emitter < Sprite_Base
   
   # 射出角度の更新
   def update_emit_angle
-    @emit_angle = frame_value(@emitter.emit_angle, @emitter.target_emit_angle)
+    @emit_angle = frame_value(@emitter.target_emit_angle * 10000, @emitter.emit_angle * 10000) / 10000
+
   end
   
-  # パーティクルの放出
+  # パーツの放出
   def emit_parts
-    # 射出タイミングの場合パーティクルを射出
+    # 射出タイミングの場合パーツを射出
     if @count % @emitter.interval == 0
       @emitter.injection_number.times{|i| create_parts}
     end
   end
   
-  # パーティクルデータの作成
+  # パーツデータの作成
   def create_parts
-    # 新しいパーティクルをセット
+    # 新しいパーツをセット
     new_parts = set_new_parts
     return unless new_parts
     # ビューポートを設定
@@ -742,13 +743,13 @@ class Game_Emitter < Sprite_Base
     new_parts.set_vector(vector_x, vector_y, acceleration)
   end
   
-  # 新しいパーティクルデータをセット
+  # 新しいパーツデータをセット
   def set_new_parts
-    # パーティクルデータを読み出す
+    # パーツデータを読み出す
     index = @emitter.parts_list[erand(@emitter.parts_list.size)]
     return nil unless index
     new_parts_data = parts_obj(index)
-    # パーティクルデータがない場合終了
+    # パーツデータがない場合終了
     if new_parts_data
       # リサイクル可能なデータがある場合再利用する
       if !@finished_list.empty?
@@ -756,7 +757,7 @@ class Game_Emitter < Sprite_Base
         new_parts = @parts_list[i]
         new_parts.set_new_parts(new_parts_data, @rand_index)
         @valid_list.push(i)
-      # 保持できる最大数以下ならパーティクルを格納する
+      # 保持できる最大数以下ならパーツを格納する
       elsif @parts_list.size < @emitter.max_parts
         @valid_list.push(@parts_list.size)
         new_parts = Game_Parts.new(new_parts_data, @rand_index)
@@ -766,14 +767,14 @@ class Game_Emitter < Sprite_Base
     new_parts
   end
   
-  # パーティクルにフィジックスを設定
+  # パーツにフィジックスを設定
   def set_parts_physics(parts_data)
     # フィジックスを設定
     parts_data.with_emitter = true
     parts_data.physics = @physics
   end
   
-  # パーティクルセットの更新 
+  # パーツセットの更新 
   def update_parts_list
     for i in @valid_list    # エミッターの更新
       parts = @parts_list[i]
@@ -812,9 +813,47 @@ class Game_Emitter < Sprite_Base
 end
 
 
+### ■パーツとエミッターを管理するエフェクターのクラス■ ###
+class Game_Animation < Sprite_Base
+  
+  # Mix-In  
+  include RandTable
+  include Coordinate
+
+  # オブジェクト初期化  
+  def initialize(animation_data = nil)
+    init_rand
+    @target = nil
+    @animation = animation_data
+    @display_x = 0
+    @display_y = 0
+    @real_x = 0                               # 実座標 X
+    @real_y = 0                               # 実座標 Y
+    @parts_list = []
+    @emitters = []
+    @time = 0
+    @time_count = 0
+    set_up
+  end
+  
+  # 初期設定  
+  def set_up
+    # 数値の初期設定
+    #generate_path                             # パスの生成
+    #generate_tag                              # 効果タグの生成
+    @count = 0                                # 経過時間
+    @visible = true                           # 可視状態
+    @finish = false                           # 終了フラグ
+    @easy_refresh = false
+  end   
+  
+  
+  
+end
 
 
-### ■パーティクルとエミッターを管理するエフェクターのクラス■ ###
+=begin
+### ■パーツとエミッターを管理するエフェクターのクラス■ ###
 class Game_Animation < Sprite_Base
     
   # Mix-In  
@@ -830,7 +869,7 @@ class Game_Animation < Sprite_Base
   attr_reader   :display_y
   attr_reader   :zoom_rate
   attr_reader   :z
-  attr_reader   :particles
+  attr_reader   :parts_list
   attr_reader   :emitters
   attr_reader   :physics
   attr_reader   :tag
@@ -849,7 +888,7 @@ class Game_Animation < Sprite_Base
     @real_y = 0                               # 実座標 Y
     @z = 0
     @angle = 0
-    @particles = []
+    @parts_list = []
     @emitters = []
     @time = 0
     @time_count = 0
@@ -897,8 +936,8 @@ class Game_Animation < Sprite_Base
     py = y - @real_y
     @real_x = x
     @real_y = y
-    # パーティクルの位置調整
-    @particles.each{|particle| particle.adjust_pos(px, py)}
+    # パーツの位置調整
+    @parts_list.each{|parts| parts.adjust_pos(px, py)}
     # エミッターの位置調整
     @emitters.each{|emitter| emitter.adjust_pos(px, py)}
   end
@@ -907,8 +946,8 @@ class Game_Animation < Sprite_Base
   def z=(value)
     revise_z = @z - value
     @z = value
-    # パーティクルの位置調整
-    @particles.each{|particle| particle.adjust_z(revise_z)}
+    # パーツの位置調整
+    @parts_list.each{|parts| parts.adjust_z(revise_z)}
     # エミッターの位置調整
     @emitters.each{|emitter| emitter.adjust_z(revise_z)}
   end
@@ -917,8 +956,8 @@ class Game_Animation < Sprite_Base
   def angle=(value)
     angle_temp = @angle - value
     @angle = value
-    # パーティクルの位置調整
-    @particles.each{|particle| particle.adjust_angle(angle_temp)}
+    # パーツの位置調整
+    @parts_list.each{|parts| parts.adjust_angle(angle_temp)}
     # エミッターの位置調整
     @emitters.each{|emitter| emitter.adjust_angle(angle_temp)}
   end
@@ -926,8 +965,8 @@ class Game_Animation < Sprite_Base
   # エフェクターの可視状態  
   def visible=(value)
     @visible = value
-    # パーティクルの位置調整
-    @particles.each{|particle| particle.visible = value}
+    # パーツの位置調整
+    @parts_list.each{|parts| parts.visible = value}
     # エミッターの位置調整
     @emitters.each{|emitter| emitter.visible = value}
   end
@@ -940,13 +979,13 @@ class Game_Animation < Sprite_Base
   # エフェクターの終了
   def finish
     @finish = true
-    # 登録パーティクルを全て終了
-    for particle in @particles
-      next if particle.disposed?
-      particle.finish
-      particle.dispose
+    # 登録パーツを全て終了
+    for parts in @parts_list
+      next if parts.disposed?
+      parts.finish
+      parts.dispose
     end    
-    @particles.clear
+    @parts_list.clear
     # 登録エミッターを全て終了
     for emitter in @emitters
       emitter.finish
@@ -960,7 +999,7 @@ class Game_Animation < Sprite_Base
   end
   
   ### 参照関連  
-  # エフェクターが保持できる最大パーティクル数
+  # エフェクターが保持できる最大パーツ数
   def object_max
     @animation.object_max
   end
@@ -974,7 +1013,7 @@ class Game_Animation < Sprite_Base
       update_animation    # エフェクターの更新
       update_tag  # エフェクトタグの更新
       update_emitters    # エミッターの更新
-      update_particles   # パーティクルの更新
+      update_parts_list   # パーツの更新
     end
     @time += Time.now - time
     @time_count = (@time_count + 1) % 60
@@ -990,98 +1029,98 @@ class Game_Animation < Sprite_Base
     @count += 1         
     # 更新
     generate_emitters    # エミッターの生成
-    generate_particles   # パーティクルの生成
+    generate_parts_list   # パーツの生成
   end
   
-  ### パーティクルの生成 ###
-  # パーティクルの作成  
-  def generate_particles
-    # 発生タイミングの場合パーティクルを射出
-    for particle_data in @animation.particle_list
-      next unless particle_data
-      create_particle(particle_data) if @count == particle_data.start_time
+  ### パーツの生成 ###
+  # パーツの作成  
+  def generate_parts_list
+    # 発生タイミングの場合パーツを射出
+    for parts_data in @animation.parts_list
+      next unless parts_data
+      create_parts(parts_data) if @count == parts_data.start_time
     end
   end
   
-  # パーティクルデータの作成  
-  def create_particle(particle_data)
-    # パーティクルデータを読み出す
-    for index in particle_data.particle_list
-      new_particle_data = @animation.particle_obj[index]
-      # パーティクルデータがない場合終了
-      next unless new_particle_data
-      # パーティクルを格納する
-      new_particle = Game_Particle.new(new_particle_data, self, erand(1024))
-      @particles.push(new_particle)
+  # パーツデータの作成  
+  def create_parts(parts_data)
+    # パーツデータを読み出す
+    for index in parts_data.parts_list
+      new_parts_data = @animation.parts_obj[index]
+      # パーツデータがない場合終了
+      next unless new_parts_data
+      # パーツを格納する
+      new_parts = Game_Particle.new(new_parts_data, self, erand(1024))
+      @parts_list.push(new_parts)
       # ビューポートを設定
-      new_particle.target = @target
+      new_parts.target = @target
       # 可視状態を設定
-      new_particle.visible = @visible
+      new_parts.visible = @visible
       # Z座標を設定
-      set_particle_z(particle_data, new_particle)
+      set_parts_z(parts_data, new_parts)
       # パスを設定
-      set_particle_path(particle_data, new_particle)
+      set_parts_path(parts_data, new_parts)
       # 位置情報を設定
-      set_particle_pos(particle_data, new_particle)
+      set_parts_pos(parts_data, new_parts)
       # 角度情報を設定
-      set_particle_angle(particle_data, new_particle)
+      set_parts_angle(parts_data, new_parts)
     end
   end
   
-  # パーティクルのZ座標を設定  
-  def set_particle_z(particle_data, new_particle)
+  # パーツのZ座標を設定  
+  def set_parts_z(parts_data, new_parts)
     # パスを設定
-    new_particle.z = particle_data.z + @z
+    new_parts.z = parts_data.z + @z
   end
   
-  # パーティクルのパスを設定  
-  def set_particle_path(particle_data, new_particle)
+  # パーツのパスを設定  
+  def set_parts_path(parts_data, new_parts)
     # パスを設定
-    new_particle.path = @paths[particle_data.path_list]
+    new_parts.path = @paths[parts_data.path_list]
   end
   
-  # パーティクルの位置を設定  
-  def set_particle_pos(particle_data, new_particle)
+  # パーツの位置を設定  
+  def set_parts_pos(parts_data, new_parts)
     # 位置情報を設定
-    new_particle.set_pos(@real_x + particle_data.x * 8, @real_y + particle_data.y * 8)
+    new_parts.set_pos(@real_x + parts_data.x * 8, @real_y + parts_data.y * 8)
   end
   
   # 角度を設定  
-  def set_particle_angle(particle_data, new_particle)
+  def set_parts_angle(parts_data, new_parts)
     # 角度の決定
-    if new_particle.random_angle?
+    if new_parts.random_angle?
       angle_temp = erand(360)
-      new_particle.set_angle(angle_temp)
+      new_parts.set_angle(angle_temp)
     else
-      new_particle.set_angle(particle_data.angle + @angle)
+      new_parts.set_angle(parts_data.angle + @angle)
     end
   end
   
-  # パーティクルセットの更新  
-  def update_particles
-    @particles.size.times do |i|
-      particle = @particles[i]
-      particle.update
-      if particle.finish?
-        particle.dispose
-        @particles[i] = nil
+  # パーツセットの更新  
+  def update_parts_list
+    @parts_list.size.times do |i|
+      parts = @parts_list[i]
+      parts.update
+      if parts.finish?
+        parts.dispose
+        @parts_list[i] = nil
       end
     end
-    @particles.compact!
+    @parts_list.compact!
   end
   
   # 表示座標を差し引いた X 座標の計算
-  def particle_adjust_x(x)
+  def parts_adjust_x(x)
     (x - @display_x) * @zoom_rate / 10000
   end
   
   # 表示座標を差し引いた X 座標の計算  
-  def particle_adjust_y(y)
+  def parts_adjust_y(y)
     (y - @display_y) * @zoom_rate / 10000
   end
   
   # 表示座標を差し引いた X 座標の計算
-  def particle_adjust_zoom(zoom)
+  def parts_adjust_zoom(zoom)
     zoom * @zoom_rate / 10000
   end
   
@@ -1205,3 +1244,4 @@ class Game_Animation < Sprite_Base
   end
   
 end
+=end

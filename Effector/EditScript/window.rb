@@ -20,7 +20,7 @@ module WS
       super(0,0,Window.width,Window.height)#,"アニメーションウィンドウ")
       Window.bgcolor = COLOR[:base]
       create_controls
-      c_tab.select_tab(:prt_tab)
+      c_tab.select_tab(:anm_tab)
     end
     
     # コントロールの作成
