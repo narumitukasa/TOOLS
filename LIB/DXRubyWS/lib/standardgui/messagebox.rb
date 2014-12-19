@@ -60,7 +60,6 @@ module WS
       btn = WSButton.new(nil,nil,nil,nil,"OK")
       add_control(btn, :btn)
       btn.add_handler(:click){self.close}
-      btn.add_handler(:click_cancel){WS.capture(self, true)} # キャプチャが外れるのでしなおし
       
       # オートレイアウトでコントロールの位置を決める
       # Layout#objで元のコンテナを参照できる
@@ -82,7 +81,7 @@ module WS
       add_key_handler(K_ESCAPE){self.close} if cancelable
       
       # マウスキャプチャする
-      WS.capture(self, true)
+      WS.capture(self, true, true)
       
       # ボタンにフォーカスを当てる
       btn.activate
@@ -90,7 +89,7 @@ module WS
     
     # ウィンドウを閉じたら次の優先ウィンドウにフォーカスを移す
     def close
-      WS.capture(nil)
+      WS.release_capture
       super
     end
   end

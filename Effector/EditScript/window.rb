@@ -20,7 +20,7 @@ module WS
       super(0,0,Window.width,Window.height)#,"アニメーションウィンドウ")
       Window.bgcolor = COLOR[:base]
       create_controls
-      c_tab.select_tab(:anm_tab)
+      c_tab.select_tab(:prt_tab)
     end
     
     # コントロールの作成
@@ -35,7 +35,7 @@ module WS
       pw = 1416
       ph = 860
       add_control(WS::WSTab.new(cx, cy, cw, ch), :c_tab)
-      c_tab.create_tab(WSTabPanel_Animation.new(0, 0, pw, ph), :anm_tab , "エフェクト")
+      #c_tab.create_tab(WSTabPanel_Animation.new(0, 0, pw, ph), :anm_tab , "エフェクト")
       c_tab.create_tab(WSTabPanel_Emitter.new(0, 0, pw, ph), :emt_tab , "エミッター")
       c_tab.create_tab(WSTabPanel_Parts.new(0, 0, pw, ph), :prt_tab , "パーツ")
       c_tab.create_tab(WSTabPanel_PartsImg.new(0, 0, pw, ph), :img_tab , "画像")

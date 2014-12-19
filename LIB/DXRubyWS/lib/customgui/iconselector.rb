@@ -47,8 +47,8 @@ module WS
     
     # サブウィンドウの作成
     def create_sub_window(obj, tx, ty)
-      cw = [@preview_image.width, 1280].min + 43
-      ch = [@preview_image.height, 720].min + 75
+      cw = [[@preview_image.width, 360].max, 1280].min + 43
+      ch = [[@preview_image.height, 240].max, 720].min + 75
       isw = WSIconSelectWindow.new(cw, ch, @icon_width, @icon_height, @column, @path)
       isw.index = @index
       isw.add_handler(:decide, method(:select))
@@ -88,7 +88,7 @@ module WS
   
 
   # アイコン選択ウィンドウ
-  class WSIconSelectWindow < WSWindow
+  class WSIconSelectWindow < WSDialogBase
     
     # 公開インスタンス
     attr_reader :index
@@ -107,39 +107,44 @@ module WS
       create_controls
       
       # マウスキャプチャする
-      WS.capture(self, true)
+      WS.capture(self, true, true)
     end
 
     # コントロールの作成
     def create_controls
 
-      # オートレイアウトでコントロールの位置を決める
-      # Layout#objで元のコンテナを参照できる
-      layout(:vbox) do
-        self.margin_top = self.margin_left = self.margin_right = self.margin_bottom = self.obj.border_width
-        add obj.window_title, true
-        add obj.client, true, true
-      end
-      
-      # Escで閉じる
-      add_key_handler(K_ESCAPE){self.close}
       add_key_handler(K_RETURN){self.decide}
       
       # ボタンの作成
-      btn_ok = WS::WSButton.new(self.client.width - 240, self.client.height - 30, 100, 20, "OK")
-      client.add_control(btn_ok, :button_ok)
-      btn_ok.add_handler(:click){self.decide}
-      btn_can = WS::WSButton.new(self.client.width - 128, self.client.height - 30, 100, 20, "キャンセル")
-      client.add_control(btn_can, :button_can)
-      btn_can.add_handler(:click){self.close}
+      add_control(WS::WSButton.new(0, 0, 100, 20, "OK"), :c_btn_ok)
+      c_btn_ok.add_handler(:click){self.decide}
+      add_control(WS::WSButton.new(0, 0, 100, 20, "キャンセル"), :c_btn_cancel)
+      c_btn_cancel.add_handler(:click){self.close}
             
       # プレビュー領域の作成
-      client.add_control(WS::WSPreviewArea.new(8, 8, self.client.width - 16 , self.client.height - 48) ,:c_preview)
-      client.c_preview.filename = @path
-      client.c_preview.client.add_handler(:click, method(:select_icon))
+      add_control(WS::WSPreviewArea.new(0, 0, 32, 32) ,:c_preview)
+      c_preview.filename = @path
+      c_preview.client.add_handler(:click, method(:select_icon))
         
       # コメント表示領域の作成
-      client.add_control(WS::WSComment.new(8, client.height - 32, 120, 24),:c_status)
+      add_control(WS::WSComment.new(0, 0, 120, 24),:c_status)
+      
+      # オートレイアウト
+      client.layout(:vbox) do
+      	self.set_margin(8, 8, 8, 8)
+      	self.space = 4
+      	add obj.c_preview, true, true
+      	layout(:hbox) do
+      		self.space = 4
+      		self.resizable_height = false
+      		self.height = 24
+      	  add obj.c_status, false, false
+      	  layout
+      	  add obj.c_btn_ok, false, false
+      	  add obj.c_btn_cancel, false, false
+      	end
+      end
+      
     end
     
     def index=(v)
@@ -157,14 +162,9 @@ module WS
       end
     end
     
-    # ドラッグ移動の処理      
-    def on_drag_move(obj, dx, dy)
-      move(self.x + dx, self.y + dy)
-    end
-      
     # ウィンドウを閉じたら次の優先ウィンドウにフォーカスを移す
     def close
-      WS.capture(nil)
+      WS.release_capture
       super
     end
     
@@ -180,7 +180,7 @@ module WS
       sy = @index / @column * @icon_height
       ex = sx + @icon_width  - 1
       ey = sy + @icon_height - 1
-      pi = client.c_preview.client.image
+      pi = c_preview.client.image
       pi.draw_line(sx-1, sy-1, sx-1, ey+1, C_BLACK, 1)
       pi.draw_line(ex+1, sy-1, ex+1, ey+1, C_BLACK, 1)
       pi.draw_line(sx-1, sy-1, ex+1, sy-1, C_BLACK, 1)
@@ -198,12 +198,6 @@ module WS
       pi.draw_line(sx+2, sy+2, ex-2,sy+2, C_BLACK, 1)
       pi.draw_line(sx+2, ey-2, ex-2,ey-2, C_BLACK, 1)
       super
-    end
-    
-    # 描画
-    def draw
-      super
-      draw_border(true)
     end
     
   end
