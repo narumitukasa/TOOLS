@@ -36,7 +36,7 @@ module WS
       # タブの作成
       create_tab
       # レイアウトの初期化
-      client.layout(:vbox) do
+      layout(:vbox) do
         set_margin(8, 8, 8, 8)
         self.space = 8
         layout(:hbox) do
@@ -62,7 +62,7 @@ module WS
     # タブの作成
     def create_tab
       pw, ph = 1416, 860
-      add_control(WS::WSTab.new(0, 0, 640, 480), :c_tab)
+      add_control(WS::WSTab.new(0, 0, Window.width,Window.height), :c_tab)
       c_tab.create_tab(WSTabPanel_Animation.new(0, 0, pw, ph), :anm_tab , "エフェクト")
       c_tab.create_tab(WSTabPanel_Emitter.new(0, 0, pw, ph), :emt_tab , "エミッター")
       c_tab.create_tab(WSTabPanel_Parts.new(0, 0, pw, ph), :prt_tab , "パーツ")
