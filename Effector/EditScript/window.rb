@@ -36,7 +36,7 @@ module WS
       # タブの作成
       create_tab
       # レイアウトの初期化
-      layout(:vbox) do
+      client.layout(:vbox) do
         set_margin(8, 8, 8, 8)
         self.space = 8
         layout(:hbox) do

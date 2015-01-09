@@ -25,7 +25,7 @@ exit if defined?(Ocra)
 $ini = IniFile.load("./Config.ini")
 
 window_width = [$ini['size']['WindowWidth'].to_i, Window.get_current_mode[0]-16].min
-window_height = [$ini['size']['WindowWidth'].to_i, Window.get_current_mode[1]-72].min
+window_height = [$ini['size']['WindowHeight'].to_i, Window.get_current_mode[1]-72].min
 # ウィンドウの初期設定
 Window.x = 0
 Window.y = 0
