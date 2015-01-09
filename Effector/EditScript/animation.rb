@@ -1,3 +1,5 @@
+#coding: utf-8
+
 module WS
   ### アニメーションウィンドウ ### 
   class AnimationWindow
@@ -7,16 +9,8 @@ module WS
       # 初期化
       def initialize(cx, cy, cw, ch)
         super
-        #$data_animation = create_database
-        @list = $data_animation
+        @list = []
         create_controls
-      end
-      
-      # データベースの作成
-      def create_database
-        tmp = [Game::Animation.new.header, Game::Animation.new]
-        DataManager.save_data(tmp,"./Data/Animation.dat")
-        tmp
       end
       
       # コントロールの作成
@@ -41,9 +35,6 @@ module WS
           add obj.c_list
           add obj.c_layer_list  
         end
-        
-        
-        
         
         # アニメーションプレビュー領域の作成
         add_control(WS::WSPreviewArea.new(0, 0, 128, 128) ,:c_preview)
@@ -84,16 +75,35 @@ module WS
       end 
 
       ### リスト操作 ###
+      # ライブラリの変更
+      def change_library
+        @list = NFX.current_library.animation
+      end
+      
       # リスト項目の選択
       def select_list(obj, cursor)
-        c_panel_animation.set_edit_data(obj.current_item)
-        c_dock.client.c_layer_list. set_items(obj.current_item.layer_list)
+        if obj.current_item
+          # コントロールの有効化
+          c_panel_animation.enabled = true
+          # 項目のセット
+          c_panel_animation.set_edit_data(obj.current_item)
+          c_dock.client.c_layer_list. set_items(obj.current_item.layer_list)
+        else
+          # コントロールの無効化
+          c_panel_animation.enabled = false
+          c_panel_animation_layer.enabled = false
+        end
         #@animation.set_new_animation(obj.current_item)
       end
       
       # レイヤーリスト項目の選択
       def select_layer_list(obj, cursor)
-        c_panel_animation_layer.set_edit_data(obj.current_item)
+        if obj.current_item
+          c_panel_animation_layer.enabled = true
+          c_panel_animation_layer.set_edit_data(obj.current_item)
+        else
+          c_panel_animation_layer.enabled = false
+        end
       end
       
       ### プレビュー ###
@@ -145,7 +155,7 @@ module WS
         # 初期化    
         def initialize(cx, cy, cw, ch)
           super(cx, cy, cw, ch, "アニメーション設定")
-          @edit_data = Game::Animation.new
+          @edit_data = NFX::Animation.new(:none)
           create_controls
         end
   
@@ -195,7 +205,7 @@ module WS
         # 初期化    
         def initialize(cx, cy, cw, ch)
           super(cx, cy, cw, ch, "レイヤー設定")
-          @edit_data = Game::Animation.new
+          @edit_data = NFX::Animation.new(:none)
           create_controls
         end
   

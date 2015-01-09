@@ -1,3 +1,5 @@
+#coding: utf-8
+
 module WS
   ### アニメーションウィンドウ ### 
   class AnimationWindow # < WSWindowBase
@@ -11,15 +13,8 @@ module WS
       # 初期化
       def initialize(cx, cy, cw, ch)
         super
-        @list = $data_parts_image
-        @no_list = []
+        @list = []
         create_controls
-      end
-      
-      # データベースの作成
-      def create_database
-        tmp = [Game::PartsImg.new.header, Game::PartsImg.new]
-        DataManager.save_data(tmp,"./Data/PartsImage.dat")
       end
       
       # コントロールの作成
@@ -49,9 +44,21 @@ module WS
       end
         
       ### リスト操作 ###
+      # ライブラリの変更
+      def change_library
+        @list = NFX.current_library.partsimg
+      end
+      
       # リスト項目の選択
       def select_list
-        c_img_panel.set_data(c_list.current_item)
+        if c_list.current_item
+          # コントロールの有効化
+          c_img_panel.enabled = true
+          # 項目のセット
+          c_img_panel.set_data(c_list.current_item)
+        else
+          c_img_panel.enabled = false
+        end
       end
       
       ### 描画 ###
@@ -65,6 +72,7 @@ module WS
       def draw_preview
         preview  = c_preview
         partsimg = c_list.current_item
+        return unless partsimg
         # 画像の更新
         preview.filename = partsimg.filename
         # グリットの描画
@@ -104,7 +112,7 @@ module WS
         
         def initialize(cx, cy, cw, ch)
           super(cx, cy, cw, ch, "イメージ設定")
-          @edit_data = Game::PartsImg.new
+          @edit_data = NFX::PartsImg.new(:none)
           create_controls
         end
         
@@ -276,12 +284,7 @@ module WS
         # 編集データの設定
         def set_data(edit_data)
           @edit_data = edit_data
-          if @edit_data && !@edit_data.header?
-            set_parameters
-            enable_controls
-          else
-            disable_controls
-          end
+          set_parameters
         end
         
         # 数値をコントロールに設定
@@ -297,16 +300,6 @@ module WS
           c_start_pos_y.value = @edit_data.start_pos_y
           c_number_of_pattern.value = @edit_data.number_of_pattern
           c_column.value = @edit_data.column
-        end
-        
-        # コントロールを有効にする
-        def enable_controls
-          @childlen.each{|child| child.enabled = true}
-        end
-        
-        # コントロールを無効にする
-        def disable_controls
-          @childlen.each{|child| child.enabled = false}
         end
 
       end

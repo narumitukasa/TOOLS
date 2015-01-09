@@ -1,3 +1,5 @@
+#coding: utf-8
+
 module WS
   ### アニメーションウィンドウ ### 
   class AnimationWindow
@@ -7,14 +9,8 @@ module WS
       # 初期化
       def initialize(cx, cy, cw, ch)
         super
-        @list = $data_parts
+        @list = []
         create_controls
-      end
-      
-      # データベースの作成
-      def create_database
-        tmp = [Game::Parts.new.header, Game::Parts.new]
-        DataManager.save_data(tmp,"./Data/Parts.dat")
       end
       
       # コントロールの作成
@@ -27,13 +23,15 @@ module WS
         add_control(WSSortableList.new(12, 8, 200, @height - 16, @list, "パーツリスト"), :c_list)
         add_control(WSSortableList.new(220, 22 * 8 + 44, 240, @height - 228, [], "キーフレームリスト"), :c_list_frame)
         c_list.add_handler(:select, method(:select_list))
+        c_list.add_handler(:create){ NFX::Parts.new(NFX.current_library_name) }
         c_list_frame.add_handler(:select, method(:select_frame))
+        c_list.add_handler(:create){ NFX::PartsFrame.new(NFX.current_library_name) }
         # パーツプレビュー領域の作成
         add_control(WS::WSPreviewArea.new(716, 42, @width - 730 , @height - 48) ,:c_preview)
         add_control(WS::WSButton.new(756, 16, 128, 20, "プレビュー再生"), :c_btn_preview)
         c_btn_preview.add_handler(:click){ start_preview }
         # プレビュー用スプライトの作成
-        @parts_sprite = Game_Parts.new(Game::Parts.new, 0)
+        @parts_sprite = Game_Parts.new(NFX::Parts.new(:none), 0)
         @parts_sprite.set_pos(c_preview.client.width / 2, c_preview.client.height / 2)
         @parts_sprite.edit
         c_preview.set_sprite(@parts_sprite)        
@@ -67,18 +65,42 @@ module WS
       end 
 
       ### リスト操作 ###
+      # ライブラリの変更
+      def change_library
+        @list = NFX.current_library.parts
+      end
+      
       # リスト項目の選択
       def select_list(obj, cursor)
-        c_panel_parts.set_edit_data(obj.current_item)
-        c_panel_frame.set_frame_list(obj.current_item.frame_list)
-        c_list_frame.set_items(obj.current_item.frame_list)
-        select_frame(c_list_frame, 0)
-        @parts_sprite.set_new_parts(obj.current_item)
+        if obj.current_item
+          # コントロールの有効化
+          c_panel_parts.enabled = true
+          c_list_frame.enabled  = true
+          # 項目のセット
+          c_panel_parts.set_edit_data(obj.current_item)
+          c_panel_frame.set_frame_list(obj.current_item.frame_list)
+          c_list_frame.set_items(obj.current_item.frame_list)
+          select_frame(c_list_frame, 0)
+          @parts_sprite.set_new_parts(obj.current_item)
+        else
+          # コントロールの無効化
+          c_panel_parts.enabled = false
+          c_panel_frame.enabled = false
+          c_list_frame.enabled  = false
+        end
       end
       
       # フレームの選択
       def select_frame(obj, cursor)
-        c_panel_frame.set_edit_data(obj.current_item)
+        if  obj.current_item
+          # コントロールの有効化
+          c_panel_frame.enabled = true
+          # 項目のセット
+          c_panel_frame.set_edit_data(obj.current_item)
+        else
+          # コントロールの無効化
+          c_panel_frame.enabled = false
+        end
       end      
 
       ### プレビュー ###
@@ -114,7 +136,7 @@ module WS
         
         def initialize(cx, cy, cw, ch)
           super(cx, cy, cw, ch, "パーツ設定")
-          @edit_data = Game::Parts.new
+          @edit_data = NFX::Parts.new(:none)
           create_controls
         end
       
@@ -186,7 +208,7 @@ module WS
         # 初期化    
         def initialize(cx, cy, cw, ch)
           super(cx, cy, cw, ch, "フレーム設定")
-          @edit_data = Game::PartsFrame.new
+          @edit_data = NFX::PartsFrame.new
           @frame_list = []
           create_controls
         end

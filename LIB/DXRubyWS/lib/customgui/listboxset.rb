@@ -127,15 +127,13 @@ module WS
     
     # 名前をリフレッシュ
     def refresh_name
-      c_list.items[c_list.cursor] = current_item.to_s
+      c_list.items[c_list.cursor] = current_item.to_s if current_item
     end
     
     ### データの操作 ###  
     # データの作成
     def create_data
-      cls  = @items.first
-      return if cls.nil?
-      data = cls.class.new
+      data = signal(:create_data)
       data.no = @items.size
       data.id = @items.size
       @items << data

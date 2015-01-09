@@ -1,3 +1,5 @@
+#coding: utf-8
+
 module WS
   ### アニメーションウィンドウ ### 
   class AnimationWindow
@@ -7,14 +9,8 @@ module WS
       # 初期化
       def initialize(cx, cy, cw, ch)
         super
-        @list = $data_emitter
+        @list = []
         create_controls
-      end
-      
-      # データベースの作成
-      def create_database
-        tmp = [Game::Emitter.new.header, Game::Emitter.new]
-        DataManager.save_data(tmp,"./Data/Emitter.dat")
       end
       
       # コントロールの作成
@@ -49,7 +45,7 @@ module WS
           end      
         end  
         # プレビュー用スプライトの作成
-        @emitter = Game_Emitter.new(Game::Emitter.new)
+        @emitter = Game_Emitter.new(NFX::Emitter.new(:none))
         @emitter.set_pos(c_preview.client.width / 2, c_preview.client.height / 2)
         c_preview.set_sprite(@emitter)
         # 初期項目の選択
@@ -57,10 +53,25 @@ module WS
       end 
 
       ### リスト操作 ###
+      # ライブラリの変更
+      def change_library
+        @list = NFX.current_library.emitter
+      end
+      
       # リスト項目の選択
       def select_list(obj, cursor)
-        c_panel_emitter.set_edit_data(obj.current_item)
-        @emitter.set_new_emitter(obj.current_item)
+        if obj.current_item
+          # コントロールの有効化
+          c_panel_emitter.enabled = true
+          # 項目のセット
+          c_panel_emitter.set_edit_data(obj.current_item)
+          @emitter.set_new_emitter(obj.current_item)
+        else
+          # コントロールの無効化
+          c_panel_emitter.enabled = false
+          # エミッターの停止
+          @emitter.finish
+        end
       end
 
       ### プレビュー ###
@@ -108,7 +119,7 @@ module WS
         # 初期化    
         def initialize(cx, cy, cw, ch)
           super(cx, cy, cw, ch, "エミッター設定")
-          @edit_data = Game::PartsFrame.new
+          @edit_data = NFX::Emitter.new(:none)
           create_controls
         end
   

@@ -2,12 +2,6 @@
 
 require 'dxruby'
 
-# ウィンドウの初期設定
-Window.resize(640, 480)
-Window.scale = 2.0
-Window.caption = "DXRubyAdventClender2014"
-Window.load_icon("Images/icon.ico")
-
 # スクリプトの読み込み
 require_relative 'Scripts/ntmodule'
 require_relative 'Scripts/posteffect'
@@ -16,6 +10,12 @@ require_relative 'Scripts/gamemodule'
 require_relative 'Scripts/gameobj'
 
 exit if defined?(Ocra) 
+
+# ウィンドウの初期設定
+Window.resize(640, 480)
+Window.scale = 2.0
+Window.caption = "DXRubyAdventClender2014"
+Window.load_icon("Images/icon.ico")
 
 # エフェクトデータの読み込み
 DataManager.load_effect

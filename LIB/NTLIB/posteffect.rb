@@ -7,7 +7,7 @@ module PostEffect
     hlsl = <<EOS
     // (1) グローバル変数
         float4  tone;
-        float   alpha; 
+        //float   alpha; 
         texture tex0;
 
     // (2) サンプラ
@@ -34,7 +34,7 @@ module PostEffect
             PixelOut output;
             output.Color =  tex2D(Samp0, input.UV);
             output.Color += tone;
-            output.Color.a *= alpha;
+            //output.Color.a *= alpha;
             
             return output;
         }
@@ -60,13 +60,13 @@ EOS
     def initialize( tone = [0, 0, 0, 0], alpha=1.0 )
       super(@@core, "Tone")
       @tone = tone
-      @alpha = alpha
+      #@alpha = alpha
     end
 
     # シェーダーのリフレッシュ
     def refresh
       self.tone = @tone
-      self.alpha = @alpha
+      #self.alpha = @alpha
     end
 
     # パラメータの設定
@@ -75,9 +75,9 @@ EOS
     end
 
     # パラメータの設定
-    def set_alpha(alpha)
-      @alpha = alpha / 255.0
-    end
+    #def set_alpha(alpha)
+    #  @alpha = alpha / 255.0
+    #end
        
     # 識別用シンボル
     def symbol

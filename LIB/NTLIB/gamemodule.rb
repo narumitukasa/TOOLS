@@ -1,76 +1,10 @@
 # coding: utf-8
 require 'dxruby'
-require_relative 'easing'
-require_relative 'posteffect'
-
-### ■スプライトのベースクラス■ ###
-class Sprite_Base < Sprite
-  
-  # 公開インスタンス
-  attr_accessor :mirror
-  
-  # 初期化
-  def initialize(target = nil)
-    super(0, 0)
-    self.offset_sync = true
-    self.image  = RenderTarget.new(32, 32)
-    self.target = target || Window
-    @mirror = false
-    @tone_shader = PostEffect::Tone.new
-  end
-  
-  # スプライトの無効化
-  def vanish
-    # 転送矩形用レンダーターゲットを開放
-    self.image.dispose
-    super
-  end
-  
-  # 転送原点の設定
-  def src_rect(x, y, w, h)
-    self.image.resize(w, h)
-    self.image.ox = x
-    self.image.oy = y
-  end
-    
-  def alpha=(v)
-    super(v)
-    @tone_shader.set_alpha(v)
-  end
-  
-  # 色調の設定
-  def tone(red, green, blue, gray)
-    if red == 0 && green == 0 && blue == 0 && gray == 0
-      self.shader = nil
-    else
-      @tone_shader.set_parameter(red, green, blue, gray)
-      self.shader = @tone_shader
-    end
-  end
-  
-  # シェーダーのリフレッシュ
-  def refresh_shader
-    self.shader.refresh if self.shader
-  end
-  
-  # 描画
-  def draw
-    # イメージの転送
-    self.image.draw(0, 0, @bitmap) if @bitmap
-    # シェーダーのリフレッシュ
-    refresh_shader
-    super
-  end
-  
-end
-
-
-
 
 ### ■キャッシュの管理クラス■ ###
 module Cache
   
-  # ● ビットマップの読み込み
+  # ビットマップの読み込み
   def self.load_image(path)
     @cache ||= {}
     if valid?(path)
@@ -85,24 +19,24 @@ module Cache
     !path.empty? && !File.extname(path).empty?  
   end
   
-  # ● 空のビットマップを作成
+  # 空のビットマップを作成
   def self.empty_image(path)
     @cache[path] = Image.new(32, 32) unless include?(path)
     @cache[path]
   end
 
-  # ● 通常のビットマップを作成／取得
+  # 通常のビットマップを作成／取得
   def self.normal_image(path)
     @cache[path] = Image.load(path) unless include?(path)
     @cache[path]
   end
   
-  # ● キャッシュ存在チェック
+  # キャッシュ存在チェック
   def self.include?(key)
     @cache[key] && !@cache[key].disposed?
   end
 
-  # ● キャッシュのクリア
+  # キャッシュのクリア
   def self.clear
     @cache ||= {}
     @cache.clear

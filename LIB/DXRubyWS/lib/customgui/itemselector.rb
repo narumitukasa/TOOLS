@@ -65,6 +65,8 @@ module WS
   # リスト項目選択ウィンドウ
   class WSItemSelectWindow < WSWindow
     
+    include FloatingWindow
+    
     attr_reader :chosen_list
         
     # 初期化
@@ -82,10 +84,6 @@ module WS
       @chosen_list = chosen_list.clone
   
       create_controls
-      
-      # マウスキャプチャする
-      WS.capture(self, true, true)
-      
       # リフレッシュ
       refresh
     end

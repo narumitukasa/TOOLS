@@ -1,11 +1,35 @@
 # coding: utf-8
 
-module Game
- 
-  ### ■パーツのデータクラス■ ###
-  class Parts < DataBase
+module NFX
+  @@liblray = {}
   
-    # 公開インスタンス変数
+  def self.library(name)
+    @@liblray[name]
+  end
+  
+  
+  ### ■パーツのデータクラス■ ###
+  class Library
+    
+    attr_reader :library
+    attr_reader :partsimg
+    attr_reader :parts
+    attr_reader :emitter
+    attr_reader :animation
+    
+    def initialize(library)
+      @library   = library
+      @partsimg  = [PartsImg.new(library).header, PartsImg.new(library)]
+      @parts     = [Parts.new(library).header, Parts.new(library)]
+      @emitter   = [Emitter.new(library).header, Emitter.new(library)]
+      @animation = [Animation.new(library).header, Animation.new(library)]
+    end
+  end
+  
+  ### ■パーツのデータクラス■ ###
+  class Parts < Game::DataBase
+    
+    attr_reader     :library
     attr_accessor   :frame_list
     attr_accessor   :reset_angle
     attr_accessor   :angle_from_emission
@@ -15,9 +39,9 @@ module Game
     attr_accessor   :fix_pos
     attr_accessor   :fix_zoom
     
-    # オブジェクト初期化
-    def initialize
-      super
+    def initialize(library)
+      super()
+      @library = library
       # ヘッダーの作成
       header = PartsFrame.new
       header.header
@@ -38,7 +62,6 @@ module Game
       @fix_zoom = false
     end
     
-    # 修復
     def repair
       super
       for frame in @frame_list
@@ -52,9 +75,8 @@ module Game
   
   
   ### ■パーツアニメのフレームを扱うデータクラスです■ ###
-  class PartsFrame < DataBase
+  class PartsFrame < Game::DataBase
     
-    # 公開インスタンス変数
     attr_accessor   :img_list
     attr_accessor   :reset_anime
     attr_accessor   :random_anime
@@ -88,7 +110,6 @@ module Game
     attr_accessor   :curvature
     attr_accessor   :frame_list
    
-    # オブジェクト初期化
     def initialize
       super
       @img_list = []
@@ -131,9 +152,8 @@ module Game
   
 
   ### ■パーツ画像を扱うデータクラス■ ###
-  class PartsImg  < DataBase
+  class PartsImg  < Game::DataBase
     
-    # 公開インスタンス変数
     attr_accessor   :filename
     attr_accessor   :width
     attr_accessor   :height
@@ -144,9 +164,9 @@ module Game
     attr_accessor   :start_pos_y
     attr_accessor   :number_of_pattern
      
-    # オブジェクト初期化
-    def initialize
-      super
+    def initialize(library)
+      super()
+      @library = library
       @filename = ""
       @width  = 64
       @height = 48
@@ -164,9 +184,8 @@ module Game
   
   
   ### ■エミッターを扱うデータクラス■ ###
-  class Emitter < DataBase
+  class Emitter < Game::DataBase
 
-    # 公開インスタンス変数
     attr_accessor   :parts_list
     attr_accessor   :rand_seed
     attr_accessor   :draw_target
@@ -189,9 +208,9 @@ module Game
     attr_accessor   :width
     attr_accessor   :height
 
-    # 初期化
-    def initialize
-      super
+    def initialize(library)
+      super()
+      @library = library
       @parts_list = []
       @rand_seed = 0
       @draw_target = false
@@ -213,15 +232,15 @@ module Game
       @target_emit_range = 0
       @width = 128
       @height = 128
-      @shader = Game::Shader.new
+      @shader = NFX::Shader.new
     end
   end
    
   ### ■アニメーションのデータクラス■ ###
-  class Animation < DataBase
+  class Animation < Game::DataBase
     
     ### アニメーションレイヤーの定義 ###
-    class Layer < DataBase
+    class Layer < Game::DataBase
       attr_accessor   :x
       attr_accessor   :y
       attr_accessor   :z
@@ -250,7 +269,6 @@ module Game
         @path_list = []
       end
       
-      # 修復
       def repair
         super
         # パーツセットの修復
@@ -272,7 +290,7 @@ module Game
     end
     
     ### アニメーション要素の定義 ###
-    class AnimationElement < DataBase
+    class AnimationElement < Game::DataBase
       attr_accessor   :x
       attr_accessor   :y
       attr_accessor   :z
@@ -295,7 +313,6 @@ module Game
       end
     end
     
-    # 公開インスタンス
     attr_accessor   :layer_list
     attr_accessor   :physics_list              # エフェクターリスト
     attr_accessor   :tag_list                  # 効果タグセット
@@ -306,10 +323,10 @@ module Game
     attr_accessor   :fix_zoom
     attr_accessor   :delay
     
-    # 初期化
-    def initialize
-      super
-      @layer_list = [Game::Animation::Layer.new("キャンバス", true)]
+    def initialize(library)
+      super()
+      @library = library
+      @layer_list = [Layer.new("キャンバス", true)]
       @physics_list = []
       @tag_list = []
       @width  = 128
@@ -321,7 +338,6 @@ module Game
       @delay = 2
     end
 
-    # 修復
     def repair
       super
       # レイヤーデータの修復
@@ -343,13 +359,11 @@ module Game
   end
   
   ### ■シェーダーのデータクラス■ ###
-  class Shader < DataBase
+  class Shader < Game::DataBase
     
-    # 公開インスタンス
     attr_accessor   :symbol
     attr_accessor   :parameters
   
-    # 初期化
     def initialize
       super
       @symbol = :none
